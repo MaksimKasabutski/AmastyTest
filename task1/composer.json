@@ -1,0 +1,12 @@
+{
+  "autoload": {
+    "psr-4": {
+      "Task1\\":"Classes/"
+    }
+  },
+  "require": {
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-mysqli": "*"
+  }
+}
