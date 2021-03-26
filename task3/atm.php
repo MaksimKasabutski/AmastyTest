@@ -12,7 +12,7 @@ function stringToArray($string)
     foreach ($array as &$value) {
         $value = trim($value);
     }
-    rsort($array);
+    arsort($array);
     return $array;
 }
 
@@ -28,19 +28,51 @@ function getNumberOfBills($denomination, $sum): array
     return ['counter' => $counter, 'sum' => $sum];
 }
 
-function responseGenerator($denomination, $sum): object
+function responseGenerator($nominal, $sum)
 {
-    $data = getNumberOfBills($denomination, $sum);
-    if ($data['sum'] != 0) {
-        $minsum = 0;
-        foreach ($data['counter'] as $value => $count) {
-            $minsum += $value * $count;
+    $numberOfNominals = [];
+    array_push($numberOfNominals, 0);
+    for ($i = 1; $i <= $sum + $nominal[0]; $i++) {
+        $numberOfNominals[$i] = INF;
+        for ($j = 0; $j < count($nominal); $j++) {
+            if ($i >= $nominal[$j] and $numberOfNominals[$i - $nominal[$j]] + 1 < $numberOfNominals[$i]) {
+                $numberOfNominals[$i] = $numberOfNominals[$i - $nominal[$j]] + 1;
+            }
         }
-        $maxsum = $minsum + array_key_last($data['counter']);
+    }
+
+    if ($numberOfNominals[$sum] == INF) {
+        for ($i = $sum; $i > 0; $i--) {
+            if ($numberOfNominals[$i] != INF) {
+                $minsum = $i;
+                break;
+            }
+        }
+        for ($i = $sum; $i < $sum + $nominal[0]; $i++) {
+            if ($numberOfNominals[$i] != INF) {
+                $maxsum = $i;
+                break;
+            }
+        }
         $response = new Response('<div>Неверная сумма. Выберте ' . $minsum . ' или ' . $maxsum . '.</div>');
     } else {
+        $output = [];
+        foreach ($nominal as $value) {
+            $output[$value] = 0;
+        }
+        while ($sum > 0) {
+            for ($i = 0; $i < count($nominal); $i++) {
+                if ($numberOfNominals[$sum - $nominal[$i]] == $numberOfNominals[$sum] - 1) {
+                    if (array_key_exists($nominal[$i], $output)) {
+                        $output[$nominal[$i]]++;
+                    }
+                    $sum -= $nominal[$i];
+                    break;
+                }
+            }
+        }
         $html = '<table><tr><th>Номинал</th><th>Значение</th><tr>';
-        foreach ($data['counter'] as $value => $count) {
+        foreach ($output as $value => $count) {
             $html .= '<tr><td>' . $value . '</td><td>' . $count . '</td><tr>';
         }
         $html .= '</table>';
@@ -48,8 +80,5 @@ function responseGenerator($denomination, $sum): object
     }
     return $response;
 }
-
 echo json_encode(responseGenerator($denomination, $sum));
 return;
-
-

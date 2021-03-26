@@ -17,7 +17,7 @@ class Queen extends AbstractChessmen
         $xshift = abs($x - $this->x);
         $yshift = abs($y - $this->y);
         $difference = abs($xshift - $yshift);
-        if(!($difference == 0 xor $difference == $xshift xor $difference == $yshift) or $x > 8 or $y > 8) {
+        if(!($difference == 0 xor $difference == $xshift xor $difference == $yshift) or $x > 8 or $y > 8 or $x < 1 or $y < 1) {
             throw new \Exception('Такой ход королевой недопустим!');
         }
         $this->x = $x;
